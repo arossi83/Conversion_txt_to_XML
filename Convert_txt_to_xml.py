@@ -31,14 +31,18 @@ from capacitor import capacitorFunc
 from FET import FETFunc
 from MOS import MOSFunc
 from strip import stripFunc
+from strip_rot import strip_rotFunc
 from Poly import PolyFunc
+from Poly_rot import Poly_rotFunc
 from pstop import pstopFunc
+from pstop_rot import pstop_rotFunc
 from DielectricBreakdown import DielectricBreakdownFunc
 from GCD import GCDFunc
 from LinewidthStrip import LinewidthStripFunc
 from LinewidthPolyMeander import LinewidthPolyMeanderFunc
 from Linewidthpstop import LinewidthpstopFunc
 from BulkCross import BulkCrossFunc
+from BulkCross_rot import BulkCross_rotFunc
 from DiodeCV import DiodeCVFunc
 from DiodeIV import DiodeIVFunc
 from MetalClover import MetalCloverFunc
@@ -80,6 +84,8 @@ for folder in dir_list:
                 
                 if fileCurr.endswith(".txt"):
 
+                    keywordsrot = ['_Rot']
+
                     ## LEFT
 
                     #Capacitor
@@ -103,20 +109,32 @@ for folder in dir_list:
                     keywordsnPlus = ['flute1_L_n+']
                     for keyword in keywordsnPlus:
                         if keyword in fileCurr:
-                            fileOutstrip = stripFunc(oldPath, newPath, xlsxName, fileCurr)
+                            for keyword2 in keywordsrot:
+                                if keyword2 in fileCurr:
+                                    fileOutstrip_rot = strip_rotFunc(oldPath, newPath, fileCurr)
+                                else:
+                                    fileOutstrip = stripFunc(oldPath, newPath, xlsxName, fileCurr)
 
 
                     #Poly
                     keywordsPoly = ['flute1_L_Poly']
                     for keyword in keywordsPoly:
                         if keyword in fileCurr:
-                            fileOutPoly = PolyFunc(oldPath, newPath, xlsxName, fileCurr)
+                            for keyword2 in keywordsrot:
+                                if keyword2 in fileCurr:
+                                    fileOutPoly_rot = Poly_rotFunc(oldPath, newPath, fileCurr)
+                                else:
+                                    fileOutPoly = PolyFunc(oldPath, newPath, xlsxName, fileCurr)
 
                     #pstop
                     keywordspstop = ['flute1_L_pstop']
                     for keyword in keywordspstop:
                         if keyword in fileCurr:
-                            fileOutpstop = pstopFunc(oldPath, newPath, xlsxName, fileCurr)
+                            for keyword2 in keywordsrot:
+                                if keyword2 in fileCurr:
+                                    fileOutpstop_rot = pstop_rotFunc(oldPath, newPath, fileCurr)
+                                else:
+                                    fileOutpstop = pstopFunc(oldPath, newPath, xlsxName, fileCurr)
 
 
                     #Dielectric breakdown
@@ -153,7 +171,11 @@ for folder in dir_list:
                     keywordsBulkCross = ['flute3_L_BulckCross']
                     for keyword in keywordsBulkCross:
                         if keyword in fileCurr:
-                            fileOutBulkCross = BulkCrossFunc(oldPath, newPath, xlsxName, fileCurr)
+                            for keyword2 in keywordsrot:
+                                if keyword2 in fileCurr:
+                                    fileOutBulkCross_rot = BulkCross_rotFunc(oldPath, newPath, fileCurr)
+                                else:
+                                    fileOutBulkCross = BulkCrossFunc(oldPath, newPath, xlsxName, fileCurr)
 
                     #Diode CV
                     keywordsDiodeCV = ['flute3_L_DiodeCV']
@@ -252,20 +274,32 @@ for folder in dir_list:
                     keywordsnPlus_R = ['flute1_R_n+']
                     for keyword in keywordsnPlus_R:
                         if keyword in fileCurr:
-                            fileOutstrip_R = stripFunc(oldPath, newPath, xlsxName_R, fileCurr)
+                            for keyword2 in keywordsrot:
+                                if keyword2 in fileCurr:
+                                    fileOutstrip_R_rot = strip_rotFunc(oldPath, newPath, fileCurr)
+                                else:
+                                    fileOutstrip_R = stripFunc(oldPath, newPath, xlsxName_R, fileCurr)
 
 
                     #Poly
                     keywordsPoly_R = ['flute1_R_Poly']
                     for keyword in keywordsPoly_R:
                         if keyword in fileCurr:
-                            fileOutPoly_R = PolyFunc(oldPath, newPath, xlsxName_R, fileCurr)
+                            for keyword2 in keywordsrot:
+                                if keyword2 in fileCurr:
+                                    fileOutPoly_R_rot = Poly_rotFunc(oldPath, newPath, fileCurr)
+                                else:
+                                    fileOutPoly_R = PolyFunc(oldPath, newPath, xlsxName_R, fileCurr)
 
                     #pstop
                     keywordspstop_R = ['flute1_R_pstop']
                     for keyword in keywordspstop_R:
                         if keyword in fileCurr:
-                            fileOutpstop_R = pstopFunc(oldPath, newPath, xlsxName_R, fileCurr)
+                            for keyword2 in keywordsrot:
+                                if keyword2 in fileCurr:
+                                    fileOutpstop_R_rot = pstop_rotFunc(oldPath, newPath, fileCurr)
+                                else:
+                                    fileOutpstop_R = pstopFunc(oldPath, newPath, xlsxName_R, fileCurr)
 
 
                     #Dielectric breakdown
@@ -302,7 +336,11 @@ for folder in dir_list:
                     keywordsBulkCross_R = ['flute3_R_BulckCross']
                     for keyword in keywordsBulkCross_R:
                         if keyword in fileCurr:
-                            fileOutBulkCross_R = BulkCrossFunc(oldPath, newPath, xlsxName_R, fileCurr)
+                            for keyword2 in keywordsrot:
+                                if keyword2 in fileCurr:
+                                    fileOutBulkCross_R_rot = BulkCross_rotFunc(oldPath, newPath, fileCurr)
+                                else:
+                                    fileOutBulkCross_R = BulkCrossFunc(oldPath, newPath, xlsxName_R, fileCurr)
 
                     #Diode CV
                     keywordsDiodeCV_R = ['flute3_R_DiodeCV']
@@ -386,4 +424,20 @@ for folder in dir_list:
             zf.write(dirname)
             for filename in files:
                 zf.write(os.path.join(dirname, filename))
-        zf.close() 
+        zf.close()
+
+
+# Create the FinalFiles directory
+os.makedirs("FinalFiles", exist_ok=True)
+
+# Get all directories in the current folder
+directories = [dir_name for dir_name in os.listdir() if os.path.isdir(dir_name)]
+
+# Iterate over the directories and copy the ones starting with "Converted"
+for directory in directories:
+    if directory.startswith("Converted"):
+        shutil.copytree(directory, os.path.join("FinalFiles", directory))
+
+# Compress the FinalFiles directory into a zip file
+shutil.make_archive("FinalFiles", "zip", ".", "FinalFiles")
+

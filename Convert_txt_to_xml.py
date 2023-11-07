@@ -55,24 +55,37 @@ from polyCBKR import polyCBKRFunc
 from nChain import nChainFunc
 from pChain import pChainFunc
 from polyChain import polyChainFunc
+from CheckDuplicates import CheckDuplicates
+
+if len(sys.argv) != 2:
+    sys.exit(0)
+
+datadir=sys.argv[1]
+
 
 rootdir = os.getcwd()
 
-dir_list = next(os.walk('.'))[1]
+dir_list = next(os.walk(datadir))[1]
 for folder in dir_list:
+    outPar=[]
+    outFile=[]
     folderName = str(folder)
+    print("Directory --------> %s" % folderName)
     if (folderName != '__pycache__'):
-        oldPath = Path(folderName)
-        newPathString = 'Converted_' + folderName
-        
+        oldPath = Path(("%s/%s" % (datadir,folderName)))
+        newPathString = ("%s/Converted_%s" % (datadir,folderName))
+        side=re.findall("HM_[A-Z]",folderName)[0]
+        ff=re.findall("[0-9]+_[0-9]+",folderName)[0]
+        batch=ff.split("_")
+        afnR=("%s_%s_%s_R.xlsx" % (batch[0],batch[1],side[3]))
+        afn=("%s_%s_%s.xlsx" % (batch[0],batch[1],side[3]))
         for file in os.listdir(oldPath):
             fileEx = os.fsdecode(file)
-
-            if fileEx.endswith("_R.xlsx"):
+            if fileEx == ("%s_%s_%s_R.xlsx" % (batch[0],batch[1],side[3])):
+                print("Analysis File Right %s found: data will be used" % afnR)
                 xlsxName_R = str(fileEx)
-
-
-            if fileEx.endswith(".xlsx") and "_R" not in fileEx:
+            if fileEx == ("%s_%s_%s.xlsx" % (batch[0],batch[1],side[3])):
+                print("Analysis File Left %s found: data will be used" % afn)
                 xlsxName = str(fileEx)
 
         if path.exists(oldPath):
@@ -80,342 +93,341 @@ for folder in dir_list:
             pathlib.Path(newPath).mkdir(parents=True, exist_ok=True) 
 
             for file in os.listdir(oldPath):
+                rot=False
+                left=False
                 fileCurr = os.fsdecode(file)
                 
                 if fileCurr.endswith(".txt"):
 
-                    keywordsrot = ['_Rot']
+                    rotkw = '_Rot'
+                    keywordsDict={
+                        'flute1': ['Capacitor','FET','MOS','n+','Poly','pstop'],
+                        'flute2': ['Dielectric','GCD','n+_linewidth','PolyMeander','pstopLinewidth'],
+                        'flute3': ['BulckCross','DiodeCV','DiodeIV','MetalCover','p+Bridge','p+Cross','Metal_Meander_Chain','p+_Cross'],
+                        'flute4': ['GCD','n+CBKR','polyCBKR','n+_Chain','p+_Chain','Poly_Chain']}
+                    fluteList=list(keywordsDict.keys())
 
-                    ## LEFT
+                    for flute in fluteList:
+                        if flute in fileCurr:
+                            for kw in keywordsDict[flute]:
+                                if kw in fileCurr:
+                                    if rotkw in fileCurr:
+                                        rot=True
+                                    if '_L_' in fileCurr:
+                                        left=True
 
-                    #Capacitor
-                    keywordsCapacitor = ['flute1_L_Capacitor']
-                    for keyword in keywordsCapacitor:
-                        if keyword in fileCurr:
-                            fileOutCapacitor = capacitorFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #FET
-                    keywordsFET = ['flute1_L_FET']
-                    for keyword in keywordsFET:
-                        if keyword in fileCurr:
-                            fileOutFET = FETFunc(oldPath, newPath, xlsxName, fileCurr)
-                    #MOS
-                    keywordsMOS = ['flute1_L_MOS']
-                    for keyword in keywordsMOS:
-                        if keyword in fileCurr:
-                            fileOutMOS = MOSFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #strip
-                    keywordsnPlus = ['flute1_L_n+']
-                    for keyword in keywordsnPlus:
-                        if keyword in fileCurr:
-                            for keyword2 in keywordsrot:
-                                if keyword2 in fileCurr:
-                                    fileOutstrip_rot = strip_rotFunc(oldPath, newPath, fileCurr)
-                                else:
-                                    fileOutstrip = stripFunc(oldPath, newPath, xlsxName, fileCurr)
-
-
-                    #Poly
-                    keywordsPoly = ['flute1_L_Poly']
-                    for keyword in keywordsPoly:
-                        if keyword in fileCurr:
-                            for keyword2 in keywordsrot:
-                                if keyword2 in fileCurr:
-                                    fileOutPoly_rot = Poly_rotFunc(oldPath, newPath, fileCurr)
-                                else:
-                                    fileOutPoly = PolyFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #pstop
-                    keywordspstop = ['flute1_L_pstop']
-                    for keyword in keywordspstop:
-                        if keyword in fileCurr:
-                            for keyword2 in keywordsrot:
-                                if keyword2 in fileCurr:
-                                    fileOutpstop_rot = pstop_rotFunc(oldPath, newPath, fileCurr)
-                                else:
-                                    fileOutpstop = pstopFunc(oldPath, newPath, xlsxName, fileCurr)
-
-
-                    #Dielectric breakdown
-                    keywordsDielectric = ['flute2_L_Dielectric']
-                    for keyword in keywordsDielectric:
-                        if keyword in fileCurr:
-                            fileOutDielectricBreakdown = DielectricBreakdownFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #GCD
-                    keywordsGCD = ['flute2_L_GCD']
-                    for keyword in keywordsGCD:
-                        if keyword in fileCurr:
-                            fileOutGCD = GCDFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #Linewidth strip
-                    keywordsnPlusLinewidth = ['flute2_L_n+_linewidth']
-                    for keyword in keywordsnPlusLinewidth:
-                        if keyword in fileCurr:
-                            fileOutLinewidthStrip = LinewidthStripFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #Linewidth Poly Meander
-                    keywordsPolyMeander = ['flute2_L_PolyMeander']
-                    for keyword in keywordsPolyMeander:
-                        if keyword in fileCurr:
-                            fileOutLinewidthPolyMeander = LinewidthPolyMeanderFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #Linewidth p-stop
-                    keywordspstopLinewidth = ['flute2_L_pstopLinewidth']
-                    for keyword in keywordspstopLinewidth:
-                        if keyword in fileCurr:
-                            fileOutLinewidthpstop = LinewidthpstopFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #Bulk cross
-                    keywordsBulkCross = ['flute3_L_BulckCross']
-                    for keyword in keywordsBulkCross:
-                        if keyword in fileCurr:
-                            for keyword2 in keywordsrot:
-                                if keyword2 in fileCurr:
-                                    fileOutBulkCross_rot = BulkCross_rotFunc(oldPath, newPath, fileCurr)
-                                else:
-                                    fileOutBulkCross = BulkCrossFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #Diode CV
-                    keywordsDiodeCV = ['flute3_L_DiodeCV']
-                    for keyword in keywordsDiodeCV:
-                        if keyword in fileCurr:
-                            fileOutDiodeCV = DiodeCVFunc(oldPath, newPath, xlsxName, fileCurr)
-                   
-                    #Diode IV
-                    keywordsDiodeIV = ['flute3_L_DiodeIV']
-                    for keyword in keywordsDiodeIV:
-                        if keyword in fileCurr:
-                            fileOutDiodeIV = DiodeIVFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #Metal clover
-                    keywordsMetalClover = ['flute3_L_MetalCover']
-                    for keyword in keywordsMetalClover:
-                        if keyword in fileCurr:
-                            fileOutMetalClover = MetalCloverFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #p-Bridge
-                    keywordspPlusBridge = ['flute3_L_p+Bridge']
-                    for keyword in keywordspPlusBridge:
-                        if keyword in fileCurr:
-                            fileOutpBridge = pBridgeFunc(oldPath, newPath, xlsxName, fileCurr)
-                   
-                    #p-Cross
-                    keywordspPlusCross = ['flute3_L_p+Cross']
-                    for keyword in keywordspPlusCross:
-                        if keyword in fileCurr:
-                            fileOutpCross = pCrossFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #Metal Meander Chain
-                    keywordsMetalMeanderChain = ['L_flute3_Metal_Meander_Chain']
-                    for keyword in keywordsMetalMeanderChain:
-                        if keyword in fileCurr:
-                            fileOutMetalMeanderChain = MetalMeanderChainFunc(oldPath, newPath, xlsxName, fileCurr)
-                    
-                    #GCD05
-                    keywordsGCD05 = ['flute4_L_GCD']
-                    for keyword in keywordsGCD05:
-                        if keyword in fileCurr:
-                            fileOutGCD05 = GCD05Func(oldPath, newPath, xlsxName, fileCurr)
-
-                    #strip CBKR
-                    keywordsnPlusCBKR = ['flute4_L_n+CBKR']
-                    for keyword in keywordsnPlusCBKR:
-                        if keyword in fileCurr:
-                            fileOutstripCBKR = stripCBKRFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #poly CBKR
-                    keywordspolyCBKR = ['flute4_L_polyCBKR']
-                    for keyword in keywordspolyCBKR:
-                        if keyword in fileCurr:
-                            fileOutpolyCBKR = polyCBKRFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #n-chain
-                    keywordsnPlusChain = ['L_flute4_n+_Chain']
-                    for keyword in keywordsnPlusChain:
-                        if keyword in fileCurr:
-                            fileOutnChain = nChainFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #p-chain
-                    keywordspPlusChain = ['L_flute4_p+_Chain']
-                    for keyword in keywordspPlusChain:
-                        if keyword in fileCurr:
-                            fileOutpChain = pChainFunc(oldPath, newPath, xlsxName, fileCurr)
-
-                    #poly Chain
-                    keywordsPolyChain = ['L_flute4_Poly_Chain']
-                    for keyword in keywordsPolyChain:
-                        if keyword in fileCurr:
-                            fileOutpolyChain = polyChainFunc(oldPath, newPath, xlsxName, fileCurr)
-
-
-
-                    ## RIGHT
-
-                    #Capacitor
-                    keywordsCapacitor_R = ['flute1_R_Capacitor']
-                    for keyword in keywordsCapacitor_R:
-                        if keyword in fileCurr:
-                            fileOutCapacitor_R = capacitorFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #FET
-                    keywordsFET_R = ['flute1_R_FET']
-                    for keyword in keywordsFET_R:
-                        if keyword in fileCurr:
-                            fileOutFET_R = FETFunc(oldPath, newPath, xlsxName_R, fileCurr)
-                    #MOS
-                    keywordsMOS_R = ['flute1_R_MOS']
-                    for keyword in keywordsMOS_R:
-                        if keyword in fileCurr:
-                            fileOutMOS_R = MOSFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #strip
-                    keywordsnPlus_R = ['flute1_R_n+']
-                    for keyword in keywordsnPlus_R:
-                        if keyword in fileCurr:
-                            for keyword2 in keywordsrot:
-                                if keyword2 in fileCurr:
-                                    fileOutstrip_R_rot = strip_rotFunc(oldPath, newPath, fileCurr)
-                                else:
-                                    fileOutstrip_R = stripFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-
-                    #Poly
-                    keywordsPoly_R = ['flute1_R_Poly']
-                    for keyword in keywordsPoly_R:
-                        if keyword in fileCurr:
-                            for keyword2 in keywordsrot:
-                                if keyword2 in fileCurr:
-                                    fileOutPoly_R_rot = Poly_rotFunc(oldPath, newPath, fileCurr)
-                                else:
-                                    fileOutPoly_R = PolyFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #pstop
-                    keywordspstop_R = ['flute1_R_pstop']
-                    for keyword in keywordspstop_R:
-                        if keyword in fileCurr:
-                            for keyword2 in keywordsrot:
-                                if keyword2 in fileCurr:
-                                    fileOutpstop_R_rot = pstop_rotFunc(oldPath, newPath, fileCurr)
-                                else:
-                                    fileOutpstop_R = pstopFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-
-                    #Dielectric breakdown
-                    keywordsDielectric_R = ['flute2_R_Dielectric']
-                    for keyword in keywordsDielectric_R:
-                        if keyword in fileCurr:
-                            fileOutDielectricBreakdown_R = DielectricBreakdownFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #GCD
-                    keywordsGCD_R = ['flute2_R_GCD']
-                    for keyword in keywordsGCD_R:
-                        if keyword in fileCurr:
-                            fileOutGCD_R = GCDFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #Linewidth strip
-                    keywordsnPlusLinewidth_R = ['flute2_R_n+_linewidth']
-                    for keyword in keywordsnPlusLinewidth_R:
-                        if keyword in fileCurr:
-                            fileOutLinewidthStrip_R = LinewidthStripFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #Linewidth Poly Meander
-                    keywordsPolyMeander_R = ['flute2_R_PolyMeander']
-                    for keyword in keywordsPolyMeander_R:
-                        if keyword in fileCurr:
-                            fileOutLinewidthPolyMeander_R = LinewidthPolyMeanderFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #Linewidth p-stop
-                    keywordspstopLinewidth_R = ['flute2_R_pstopLinewidth']
-                    for keyword in keywordspstopLinewidth_R:
-                        if keyword in fileCurr:
-                            fileOutLinewidthpstop_R = LinewidthpstopFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #Bulk cross
-                    keywordsBulkCross_R = ['flute3_R_BulckCross']
-                    for keyword in keywordsBulkCross_R:
-                        if keyword in fileCurr:
-                            for keyword2 in keywordsrot:
-                                if keyword2 in fileCurr:
-                                    fileOutBulkCross_R_rot = BulkCross_rotFunc(oldPath, newPath, fileCurr)
-                                else:
-                                    fileOutBulkCross_R = BulkCrossFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #Diode CV
-                    keywordsDiodeCV_R = ['flute3_R_DiodeCV']
-                    for keyword in keywordsDiodeCV_R:
-                        if keyword in fileCurr:
-                            fileOutDiodeCV_R = DiodeCVFunc(oldPath, newPath, xlsxName_R, fileCurr)
-                   
-                    #Diode IV
-                    keywordsDiodeIV_R = ['flute3_R_DiodeIV']
-                    for keyword in keywordsDiodeIV_R:
-                        if keyword in fileCurr:
-                            fileOutDiodeIV_R = DiodeIVFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #Metal clover
-                    keywordsMetalClover_R = ['flute3_R_MetalCover']
-                    for keyword in keywordsMetalClover_R:
-                        if keyword in fileCurr:
-                            fileOutMetalClover_R = MetalCloverFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #p-Bridge
-                    keywordspPlusBridge_R = ['flute3_R_p+Bridge']
-                    for keyword in keywordspPlusBridge_R:
-                        if keyword in fileCurr:
-                            fileOutpBridge_R = pBridgeFunc(oldPath, newPath, xlsxName_R, fileCurr)
-                   
-                    #p-Cross
-                    keywordspPlusCross_R = ['flute3_R_p+Cross']
-                    for keyword in keywordspPlusCross_R:
-                        if keyword in fileCurr:
-                            fileOutpCross_R = pCrossFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #Metal Meander Chain
-                    keywordsMetalMeanderChain_R = ['R_flute3_Metal_Meander_Chain']
-                    for keyword in keywordsMetalMeanderChain_R:
-                        if keyword in fileCurr:
-                            fileOutMetalMeanderChain_R = MetalMeanderChainFunc(oldPath, newPath, xlsxName_R, fileCurr)
-                    
-                    #GCD05
-                    keywordsGCD05_R = ['flute4_R_GCD']
-                    for keyword in keywordsGCD05_R:
-                        if keyword in fileCurr:
-                            fileOutGCD05_R = GCD05Func(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #strip CBKR
-                    keywordsnPlusCBKR_R = ['flute4_R_n+CBKR']
-                    for keyword in keywordsnPlusCBKR_R:
-                        if keyword in fileCurr:
-                            fileOutstripCBKR_R = stripCBKRFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #poly CBKR
-                    keywordspolyCBKR_R = ['flute4_R_polyCBKR']
-                    for keyword in keywordspolyCBKR_R:
-                        if keyword in fileCurr:
-                            fileOutpolyCBKR_R = polyCBKRFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #n-chain
-                    keywordsnPlusChain_R = ['R_flute4_n+_Chain']
-                    for keyword in keywordsnPlusChain_R:
-                        if keyword in fileCurr:
-                            fileOutnChain_R = nChainFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #p-chain
-                    keywordspPlusChain_R = ['R_flute4_p+_Chain']
-                    for keyword in keywordspPlusChain_R:
-                        if keyword in fileCurr:
-                            fileOutpChain_R = pChainFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-                    #poly Chain
-                    keywordsPolyChain_R = ['R_flute4_Poly_Chain']
-                    for keyword in keywordsPolyChain_R:
-                        if keyword in fileCurr:
-                            fileOutpolyChain_R = polyChainFunc(oldPath, newPath, xlsxName_R, fileCurr)
-
-
-
+                                    if rot:
+                                        if left:
+                                            outPar.append(("%s - %s - Left - Rot" % (flute,kw)))
+                                            outFile.append(fileCurr)
+                                            #print("%s - %s - Left - Rot: %s" % (flute,kw,fileCurr))
+                                        else:
+                                            outPar.append(("%s - %s - Right - Rot" % (flute,kw)))
+                                            outFile.append(fileCurr)
+                                            #print("%s - %s - Right - Rot: %s" % (flute,kw,fileCurr))
+                                    else:
+                                        if left:
+                                            outPar.append(("%s - %s - Left - NoRot" % (flute,kw)))
+                                            outFile.append(fileCurr)                                            
+                                            #print("%s - %s - Left - NoRot: %s" % (flute,kw,fileCurr))
+                                        else:
+                                            outPar.append(("%s - %s - Right - NoRot" % (flute,kw)))
+                                            outFile.append(fileCurr)                                            
+                                            #print("%s - %s - Right - NoRot: %s" % (flute,kw,fileCurr))
+            
+            filteredPar, filteredFile=CheckDuplicates(outPar,outFile)
+            #print(outPar)
+            #print(filteredPar)
+            #print(outFile)
+            #print(filteredFile)
+            ###Process Each Files
+            nL=0
+            nR=0
+            nL_r=0
+            nR_r=0
+            for idx,par in enumerate(filteredPar):
+                #Flute1 Capacitor
+                if 'Capacitor' in par and 'flute1' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutCapacitor = capacitorFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutCapacitor_R = capacitorFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute1 FET
+                if 'FET' in par and 'flute1' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutFET = FETFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutFET_R = FETFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute1 MOS
+                if 'MOS' in par and 'flute1' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutMOS = MOSFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutMOS_R = MOSFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute1 n+ 
+                if 'n+' in par and 'flute1' in par:
+                    if 'NoRot' in par:
+                        if 'Left' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutstrip = stripFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                            nL+=1
+                        if 'Right' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutstrip_R = stripFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                            nR+=1
+                    else:
+                        if 'Left' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutstrip_rot = strip_rotFunc(oldPath, newPath, filteredFile[idx])
+                            nL_r+=1
+                        if 'Right' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutstrip_R_rot = strip_rotFunc(oldPath, newPath, filteredFile[idx])
+                            nR_r+=1
+                #Flute1 Poly 
+                if 'Poly' in par and 'flute1' in par:
+                    if 'NoRot' in par:
+                        if 'Left' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutPoly = PolyFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                            nL+=1
+                        if 'Right' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutPoly_R = PolyFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                            nR+=1
+                    else:
+                        if 'Left' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutPoly_rot = Poly_rotFunc(oldPath, newPath, filteredFile[idx])
+                            nL_r+=1
+                        if 'Right' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutPoly_R_rot = Poly_rotFunc(oldPath, newPath, filteredFile[idx])
+                            nR_r+=1
+                #Flute1 pstop 
+                if 'pstop' in par and 'flute1' in par:
+                    if 'NoRot' in par:
+                        if 'Left' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutpstop = pstopFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                            nL+=1
+                        if 'Right' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutpstop_R = pstopFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                            nR+=1
+                    else:
+                        if 'Left' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutpstop_rot = pstop_rotFunc(oldPath, newPath, filteredFile[idx])
+                            nL_r+=1
+                        if 'Right' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutpstop_R_rot = pstop_rotFunc(oldPath, newPath, filteredFile[idx])
+                            nR_r+=1
+                #Flute2 DielectricBreakdown
+                if 'Dielectric' in par and 'flute2' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutDielectricBreakdown = DielectricBreakdownFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutDielectricBreakdown_R = DielectricBreakdownFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute2 GCD
+                if 'GCD' in par and 'flute2' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutGCD = GCDFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutGCD_R = GCDFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute2 LinewidthStrip
+                if 'n+_linewidth' in par and 'flute2' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutLinewidthStrip = LinewidthStripFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutLinewidthStrip_R = LinewidthStripFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute2 LinewidthPolyMeander
+                if 'PolyMeander' in par and 'flute2' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutLinewidthPolyMeander = LinewidthPolyMeanderFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutLinewidthPolyMeander_R = LinewidthPolyMeanderFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute2 Linewidthpstop
+                if 'pstopLinewidth' in par and 'flute2' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutLinewidthpstop = LinewidthpstopFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutLinewidthpstop_R = LinewidthpstopFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute3 BulckCross
+                if 'BulckCross' in par and 'flute3' in par:
+                    if 'NoRot' in par:
+                        if 'Left' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutBulckCross = BulkCrossFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                            nL+=1
+                        if 'Right' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutBulckCross_R = BulkCrossFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                            nR+=1
+                    else:
+                        if 'Left' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutBulckCross_rot = BulkCross_rotFunc(oldPath, newPath, filteredFile[idx])
+                            nL_r+=1
+                        if 'Right' in par:
+#                            print("%s --> %s" % (par,filteredFile[idx]))
+                            fileOutBulckCross_R_rot = BulkCross_rotFunc(oldPath, newPath, filteredFile[idx])
+                            nR_r+=1
+                #Flute3 DiodeCV
+                if 'DiodeCV' in par and 'flute3' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutDiodeCV = DiodeCVFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutDiodeCV_R = DiodeCVFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute3 DiodeIV
+                if 'DiodeIV' in par and 'flute3' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutDiodeIV = DiodeIVFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutDiodeIV_R = DiodeIVFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute3 MetalCover
+                if 'MetalCover' in par and 'flute3' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutMetalCover = MetalCloverFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutMetalCover_R = MetalCloverFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute3 p+Bridge
+                if 'p+Bridge' in par and 'flute3' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutpBridge = pBridgeFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutpBridge_R = pBridgeFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute3 p+Cross
+                if 'p+Cross' in par and 'flute3' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutpCross = pCrossFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutpCross_R = pCrossFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute3 MetalMeanderChain
+                if 'Metal_Meander_Chain' in par and 'flute3' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutMetalMeanderChain = MetalMeanderChainFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutMetalMeanderChain_R = MetalMeanderChainFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute4 GCD05
+                if 'GCD' in par and 'flute4' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutGCD05 = GCD05Func(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutGCD05_R = GCD05Func(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute4 n+CBKR
+                if 'n+CBKR' in par and 'flute4' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutstripCBKR = stripCBKRFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutstripCBKR_R = stripCBKRFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute4 polyCBKR
+                if 'polyCBKR' in par and 'flute4' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutpolyCBKR = polyCBKRFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutpolyCBKR_R = polyCBKRFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute4 n+_Chain
+                if 'n+_Chain' in par and 'flute4' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutnChain = nChainFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutnChain_R = nChainFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+                #Flute4 p+_Chain
+                if 'p+_Chain' in par and 'flute4' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutpChain = pChainFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutpChain_R = pChainFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+		#Flute4 Poly_Chain
+                if 'Poly_Chain' in par and 'flute4' in par:
+                    if 'Left' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutpolyChain = polyChainFunc(oldPath, newPath, xlsxName, filteredFile[idx])
+                        nL+=1
+                    if 'Right' in par:
+#                        print("%s --> %s" % (par,filteredFile[idx]))
+                        fileOutpolyChain_R = polyChainFunc(oldPath, newPath, xlsxName_R, filteredFile[idx])
+                        nR+=1
+            print("%d Left Measurement processed, plus %d rotated" % (nL,nL_r))
+            print("%d Right Measurement processed, plus %d rotated" % (nR,nR_r))
 
         zipFileName = newPathString + '.zip'
 
@@ -428,16 +440,15 @@ for folder in dir_list:
 
 
 # Create the FinalFiles directory
-os.makedirs("FinalFiles", exist_ok=True)
+finalPath=("%s/FinalFiles" % datadir)
+os.makedirs(finalPath, exist_ok=True)
 
 # Get all directories in the current folder
-directories = [dir_name for dir_name in os.listdir() if os.path.isdir(dir_name)]
-
+directories = [dir_name for dir_name in os.listdir(datadir) if os.path.isdir(os.path.join(datadir,dir_name))]
 # Iterate over the directories and copy the ones starting with "Converted"
 for directory in directories:
     if directory.startswith("Converted"):
-        shutil.copytree(directory, os.path.join("FinalFiles", directory))
+        shutil.copytree(os.path.join(datadir,directory), os.path.join(finalPath, directory))
 
 # Compress the FinalFiles directory into a zip file
-shutil.make_archive("FinalFiles", "zip", ".", "FinalFiles")
-
+shutil.make_archive(finalPath, "zip", datadir, "FinalFiles")

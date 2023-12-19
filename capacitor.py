@@ -42,13 +42,16 @@ def capacitorFunc(folderIn, folderOut, fileXLSX, fileIn):
     with open(folderIn/fileNew) as f:
             lines = (line for line in f if not line.startswith('#'))
             FData = np.loadtxt(lines, delimiter='\t', skiprows=0)
-            
-    voltageArr = FData[:, 0]
-    capacitanceArr = FData[:, 1]
-    resistanceArr = FData[:, 2]
-    temperatureArr = FData[:, 3]
-    airTemperatureArr = FData[:, 4]
-    RHArr = FData[:, 5]
+    try:
+        voltageArr = FData[:, 0]
+        capacitanceArr = FData[:, 1]
+        resistanceArr = FData[:, 2]
+        temperatureArr = FData[:, 3]
+        airTemperatureArr = FData[:, 4]
+        RHArr = FData[:, 5]
+    except:
+        os.remove(folderIn/fileNew)
+        return(Path("incomplete"))
 
     dayData = fileIn.split('_')[11]
     if (int(dayData) < 10):

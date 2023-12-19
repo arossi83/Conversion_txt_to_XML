@@ -138,7 +138,7 @@ def DiodeCVFunc(folderIn, folderOut, fileXLSX, fileIn):
 
     runType = ET.SubElement(run, "RUN_TYPE").text = "PQC"
     location = ET.SubElement(run, "LOCATION").text = "Perugia"
-    initiatedByUser = ET.SubElement(run, "INITIATED_BY_USER").text = "Patrick Asenov"
+    initiatedByUser = ET.SubElement(run, "INITIATED_BY_USER").text = "Francesco Moscatelli"
     runBeginTimestamp = ET.SubElement(run, "RUN_BEGIN_TIMESTAMP").text = runBeginTimestamp_value
     commentDescription = ET.SubElement(run, "COMMENT_DESCRIPTION").text = "\n\n   "
 

@@ -14,7 +14,7 @@ import csv
 import pathlib
 from decimal import Decimal
 from pathlib import Path
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2TkAgg)
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
